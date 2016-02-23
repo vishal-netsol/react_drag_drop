@@ -27,6 +27,16 @@ gem 'react-rails'
 
 gem 'sprockets-coffee-react'
 
+#gem "browserify-rails"
+
+source 'https://rails-assets.org' do
+  gem 'rails-assets-fixed-data-table'
+  gem 'rails-assets-react-data-grid'
+end
+
+ gem 'sprockets', '~> 3.0'
+
+ gem 'lodash-rails'
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 

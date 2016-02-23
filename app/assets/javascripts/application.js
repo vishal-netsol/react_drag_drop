@@ -15,5 +15,8 @@
 
 //= require react
 //= require react_ujs
+//= require fixed-data-table
 //= require components
-//= require_tree .
+//= require lodash
+
+
