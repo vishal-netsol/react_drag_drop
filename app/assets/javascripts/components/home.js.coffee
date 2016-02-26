@@ -10,8 +10,36 @@ placeholder.className = "placeholder";
   getInitialState: ->
     data: ["Red", "Green", "Blue", "Yellow", "Black", "White", "Orange"]
     data1: ["123"]
-    columnWidths: {Recipe: 240, Size: 150}
-    tableWidth: _.sum(_.values({Recipe: 240, Size: 150}))
+    columnWidths: {Size: 1240, UserName: 150, Email: 1000, Firstname: 70, Lastname: 70, Education: 0, Contact: 0, Col2: 0}
+    tableWidth: _.sum(_.values({Size: 1240, UserName: 150, Email: 1000, Firstname: 70, Lastname: 70, Education: 0, Contact: 0, Col2: 0}))
+    offset: 100
+    resized_columns: []
+    rows: [{Size: "L", UserName: 'VS', Email: 'v@s.com', Firstname: 'v', Lastname: 's', Education: 'PG', Contact: '000001245678', Col2: 'col2'}]
+
+  componentDidMount: ->
+    window_width = $('body').width()
+    avl_width = window_width - @state.tableWidth
+    offset = avl_width/(_.keys(@state.columnWidths).length + 1)
+    tableWidth = (_.keys(@state.columnWidths).length + 1) * offset + @state.tableWidth
+    column_width = _.sum(_.values(@state.columnWidths))
+    columnWidths = @state.columnWidths
+    if column_width < tableWidth
+      for keys of columnWidths
+        columnWidths[keys] += offset
+    else
+      diff = column_width - window_width
+      offset = diff/(_.keys(@state.columnWidths).length + 1)
+      while diff > 0
+        for keys of columnWidths
+          if columnWidths[keys] > offset + 10
+            columnWidths[keys] -= offset
+          else
+            columnWidths[keys] += offset
+        diff = _.sum(_.values(@state.columnWidths)) - tableWidth
+    @setState tableWidth: tableWidth, columnWidths: columnWidths, offset: (offset - 1)
+    
+  rowGetter: (row) ->
+    @state.rows[row.rowIndex][row.columnKey]
 
   dragStart: (e) ->
     @dragged = e.currentTarget
@@ -74,9 +102,17 @@ placeholder.className = "placeholder";
     @setState data: data, data1: data1
 
   onColumnResizeEnd: (newColumnWidth, columnKey) ->
+    @state.resized_columns.push columnKey
     columnWidths = @state.columnWidths
+    diff = columnWidths[columnKey] - newColumnWidth
     columnWidths[columnKey] = newColumnWidth
-    @setState columnWidths: columnWidths
+    offset = diff/((_.difference(_.keys(columnWidths), @state.resized_columns)).length + 1)
+    console.log("remaining keys "+ _.difference(_.keys(columnWidths) - @state.resized_columns))
+    column_width = _.sum(_.values(columnWidths))
+    for keys of columnWidths
+      if !@state.resized_columns.includes(keys)
+        columnWidths[keys] += offset
+    @setState columnWidths: columnWidths, offset: @state.offset + offset
 
   render: ->
     <div className="container">
@@ -107,34 +143,25 @@ placeholder.className = "placeholder";
        <Table
           rowHeight={30}
           headerHeight={50}
-          width={1000}
-          height={500}
-          rowsCount={2}
+          width={@state.tableWidth}
+          height={112}
+          rowsCount={@state.rows.length}
           onColumnResizeEndCallback={@onColumnResizeEnd}
           isColumnResizing={false}>
+          {for data in _.keys(@state.columnWidths)
+            <Column
+              key = data
+              header={data}
+              width={@state.columnWidths[data]}
+              minWidth = {10}
+              isResizable={true}
+              columnKey={data}
+              cell={@rowGetter}/>
+          }
           <Column
-            cell="recipe"
-            header="Recipe"
-            width={@state.columnWidths.Recipe}
-            isResizable={true}
-            columnKey="Recipe"/>
-          <Column
-            cell="size"
-            header="Size"
-            width={@state.columnWidths.Size}
-            isResizable={true}
-            columnKey="Size"/>
-          <Column
-            cell="name"
             header="Name"
-            width={if @state.columnWidths.Name then @state.columnWidths.Name else 100}
-            isResizable={true}
+            width={@state.offset}
+            minWidth = {10}
             columnKey="Name"/>
-          <Column
-            cell="email"
-            header="Email"
-            width={if @state.columnWidths.Email then @state.columnWidths.Email else 100}
-            isResizable={true}
-            columnKey="Email"/>
         </Table>
     </div>
